@@ -16,7 +16,7 @@ jobs:
     - run: |
         CHANGED_SPECS=$(git diff --name-only HEAD^ HEAD | grep ".json$")
         for SPEC in $CHANGED_SPECS; do
-          echo SPEC
+          echo $SPEC
           SPEC_DIR=$(dirname $(dirname $(dirname SPEC)))
-          echo SPEC_DIR
+          echo $SPEC_DIR
         done
