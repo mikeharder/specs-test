@@ -14,6 +14,7 @@ jobs:
         fetch-depth: 2
 
     - run: |
+        set +o pipefail
         CHANGED_SPECS=$(git diff --name-only HEAD^ HEAD | grep ".json$")
         EXIT_CODE=0
         for SPEC in $CHANGED_SPECS; do
