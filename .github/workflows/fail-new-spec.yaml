@@ -14,7 +14,7 @@ jobs:
         fetch-depth: 2
 
     - run: |
-        set +o pipefail # Disbale pipefail
+        set +o pipefail # Disable pipefail
         set +e # Disable exit on error
         CHANGED_SPECS=$(git diff --name-only HEAD^ HEAD | grep ".json$")
         EXIT_CODE=0
