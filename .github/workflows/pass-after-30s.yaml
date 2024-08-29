@@ -1,0 +1,12 @@
+name: Pass After 30s
+
+on: pull_request
+
+jobs:
+  pass-after-30s:
+    name: Pass After 30s
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: sleep 30; echo pass
