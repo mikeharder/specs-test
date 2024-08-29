@@ -17,6 +17,12 @@ jobs:
         set +o pipefail # Disable pipefail
         set +e # Disable exit on error
         CHANGED_SPECS=$(git diff --name-only HEAD^ HEAD | grep ".json$")
+
+        if [[ -z "$CHANGED_SPECS"]]; do
+          echo "No changed specs"
+          exit 0
+        done
+
         EXIT_CODE=0
         for SPEC in $CHANGED_SPECS; do
           echo "SPEC: $SPEC"
