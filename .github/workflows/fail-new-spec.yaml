@@ -13,7 +13,8 @@ jobs:
       with:
         fetch-depth: 2
 
-    - run: |
+    - name: Check for new specs
+      run: |
         set +o pipefail # Disable pipefail
         set +e # Disable exit on error
         CHANGED_SPECS=$(git diff --name-only HEAD^ HEAD | grep ".json$")
