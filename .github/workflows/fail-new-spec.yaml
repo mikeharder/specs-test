@@ -18,10 +18,10 @@ jobs:
         set +e # Disable exit on error
         CHANGED_SPECS=$(git diff --name-only HEAD^ HEAD | grep ".json$")
 
-        if [[ -z "$CHANGED_SPECS" ]]; do
+        if [[ -z "$CHANGED_SPECS" ]]; then
           echo "No changed specs"
           exit 0
-        done
+        fi
 
         EXIT_CODE=0
         for SPEC in $CHANGED_SPECS; do
