@@ -17,14 +17,14 @@ jobs:
         CHANGED_SPECS=$(git diff --name-only HEAD^ HEAD | grep ".json$")
         EXIT_CODE=0
         for SPEC in $CHANGED_SPECS; do
-          echo SPEC: $SPEC
+          echo "SPEC: $SPEC"
           SPEC_DIR=$(dirname $(dirname $(dirname $SPEC)))
-          echo SPEC_DIR: $SPEC_DIR
+          echo "SPEC_DIR: $SPEC_DIR"
           DIR_IN_TARGET_BRANCH=$(git ls-tree HEAD^ $SPEC_DIR)
-          if [[ -n "$DIR_IN_TARGET_BRANCH"]]; then
-            echo $SPEC_DIR exists in target branch, so spec is not new
+          if [[ -n "$DIR_IN_TARGET_BRANCH" ]]; then
+            echo "$SPEC_DIR exists in target branch, so spec is not new"
           else
-            echo $SPEC_DIR does not exist in target branch, so spec is new
+            echo "$SPEC_DIR does not exist in target branch, so spec is new"
             EXIT_CODE=1
           fi
           echo
