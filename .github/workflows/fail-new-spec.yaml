@@ -1,0 +1,16 @@
+name: Fail if New Spec
+
+on: pull_request
+
+jobs:
+  fail-new-spec:
+    name: Fail if New Spec
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - run: |
+        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+        for FILE in $CHANGED_FILES; do
+          echo $FILE
+        done
