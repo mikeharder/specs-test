@@ -9,8 +9,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
     - run: |
-        CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+        CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
         for FILE in $CHANGED_FILES; do
           echo $FILE
         done
