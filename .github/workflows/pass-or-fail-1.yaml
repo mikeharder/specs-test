@@ -1,10 +1,10 @@
-name: Fail if New Spec
+name: Pass or Fail 1
 
 on: pull_request
 
 jobs:
   fail-new-spec:
-    name: Fail if New Spec
+    name: Pass or Fail 1
 
     runs-on: ubuntu-latest
 
@@ -13,7 +13,7 @@ jobs:
       with:
         fetch-depth: 2
 
-    - name: Check for new specs
+    - name: Pass or Fail
       run: |
         set +o pipefail # Disable pipefail
         set +e # Disable exit on error
@@ -28,15 +28,13 @@ jobs:
         EXIT_CODE=0
         for SPEC in $CHANGED_SPECS; do
           echo "SPEC: $SPEC"
-          SPEC_DIR=$(dirname $(dirname $(dirname $SPEC)))
-          echo "SPEC_DIR: $SPEC_DIR"
-          DIR_IN_TARGET_BRANCH=$(git ls-tree HEAD^ $SPEC_DIR)
-          if [[ -n "$DIR_IN_TARGET_BRANCH" ]]; then
-            echo "$SPEC_DIR exists in target branch, so spec is not new"
-          else
-            echo "$SPEC_DIR does not exist in target branch, so spec is new"
+          if grep -q "fail1" ; then
+            echo "Contains 'fail1'"
             EXIT_CODE=1
+          else
+            echo "Does not contain 'fail1'"
           fi
           echo
         done
         exit $EXIT_CODE
+
