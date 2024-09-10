@@ -28,7 +28,7 @@ jobs:
         EXIT_CODE=0
         for SPEC in $CHANGED_SPECS; do
           echo "SPEC: $SPEC"
-          if grep -q "fail1" ; then
+          if grep -q "fail1" $SPEC; then
             echo "Contains 'fail1'"
             EXIT_CODE=1
           else
