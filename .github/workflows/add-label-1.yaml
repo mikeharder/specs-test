@@ -3,7 +3,7 @@ name: Add Label 1
 on: pull_request
 
 jobs:
-  add-label:
+  add-label-1:
     name: Add Label 1
 
     runs-on: ubuntu-latest
