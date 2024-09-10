@@ -19,10 +19,10 @@ jobs:
         node-version: '20'
 
     - run: npm ci
-      working-directory: ./.github/workflows/scripts
+      working-directory: './.github/workflows/scripts'
 
-    - run: npx tsc
-      working-directory: ./.github/workflows/scripts
+    - run: npx tsc --build --verbose
+      working-directory: './.github/workflows/scripts'
 
     - name: Add Label
       uses: actions/github-script@v7
