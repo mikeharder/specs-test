@@ -1,6 +1,6 @@
 // @ts-check
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
-export default async ({ github, context}) => {
+module.exports = async ({ github, context}) => {
   await github.rest.issues.addLabels({
     owner: context.repo.owner,
     repo: context.repo.repo,
