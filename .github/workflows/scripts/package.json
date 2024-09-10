@@ -1,5 +1,7 @@
 {
   "devDependencies": {
-    "@types/github-script": "github:actions/github-script"
+    "@types/node": "^20.0.0",
+    "@types/github-script": "github:actions/github-script",
+    "typescript": "~5.5.4"
   }
 }
