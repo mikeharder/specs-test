@@ -18,5 +18,5 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          const script = require('./scripts/add-label-1.js')
+          const script = require('./.github/workflows/scripts/add-label-1.js')
           await script({github, context});
