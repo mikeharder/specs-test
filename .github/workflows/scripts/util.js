@@ -11,13 +11,13 @@ const exec = promisify(require("child_process").exec);
  * @param {string} name
  */
 async function addLabelIfNotExists(github, context, core, name) {
-  await core.group(`addLabelIfNotExists("${name}")`, async () => {
+  await group(`addLabelIfNotExists("${name}")`, async () => {
     if (!context.payload.pull_request) {
       throw new Error("May only run in context of a pull request");
     }
 
     if (await hasLabel(github, context, core, name)) {
-      core.info(`Already has label '${name}'`);
+      console.log(`Already has label '${name}'`);
       return;
     }
 
@@ -33,17 +33,16 @@ async function addLabelIfNotExists(github, context, core, name) {
 }
 
 /**
- * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @param {string} command
  */
-async function execRoot(core, command) {
-  return await core.group(`exec("${command}")`, async () => {
+async function execRoot(command) {
+  return await group(`exec("${command}")`, async () => {
     // TODO: Handle errors
     const result = await exec(command, {
       cwd: process.env.GITHUB_WORKSPACE,
     });
-    core.info(`stdout: '${result.stdout}'`);
-    core.info(`stderr: '${result.stderr}'`);
+    console.log(`stdout: '${result.stdout}'`);
+    console.log(`stderr: '${result.stderr}'`);
     return result.stdout;
   });
 }
@@ -61,17 +60,35 @@ async function getChangedSwaggerFiles(
   targetCommitish = "HEAD",
   diffFilter = "d"
 ) {
-  return await core.group(
+  return await group(
     `getChangedSwaggerFiles("${baseCommitish}", "${targetCommitish}", "${diffFilter}")`,
     async () => {
       const command =
         `pwsh -command ". ./eng/scripts/ChangedFiles-Functions.ps1; ` +
         `Get-ChangedSwaggerFiles (Get-ChangedFiles ${baseCommitish} ${targetCommitish} ${diffFilter})"`;
-      const result = await execRoot(core, command);
+      const result = await execRoot(command);
       return result.trim().split("\n");
     }
   );
 }
+
+/**
+ * Wrap an async function in a log group
+ * 
+ * @template T
+ * @param {string} name
+ * @param {() => Promise<T>} fn
+ */
+async function group(name, fn) {
+  console.group(name);
+  try {
+    return await fn();
+  }
+  finally {
+    console.groupEnd();
+  }
+}
+
 
 /**
  * @param {import('github-script').AsyncFunctionArguments['github']} github
@@ -81,7 +98,7 @@ async function getChangedSwaggerFiles(
  * @returns {Promise<boolean>}
  */
 async function hasLabel(github, context, core, name) {
-  return await core.group(`hasLabel("${name}")`, async () => {
+  return await group(`hasLabel("${name}")`, async () => {
     if (!context.payload.pull_request) {
       throw new Error("May only run in context of a pull request");
     }
@@ -93,10 +110,10 @@ async function hasLabel(github, context, core, name) {
       issue_number: context.payload.pull_request.number,
     });
     const labelNames = labels.map((l) => l.name);
-    core.info(`Labels: ${labelNames}`);
+    console.log(`Labels: ${labelNames}`);
 
     const result = labelNames.some((n) => n == name);
-    core.info(`returning: ${result}`);
+    console.log(`returning: ${result}`);
     return result;
   });
 }
@@ -108,13 +125,13 @@ async function hasLabel(github, context, core, name) {
  * @param {string} name
  */
 async function removeLabelIfExists(github, context, core, name) {
-  return await core.group(`removeLabelIfExists("${name}")`, async () => {
+  return await group(`removeLabelIfExists("${name}")`, async () => {
     if (!context.payload.pull_request) {
       throw new Error("May only run in context of a pull request");
     }
 
     if (!(await hasLabel(github, context, core, name))) {
-      core.info(`Does not have label '${name}'`);
+      console.log(`Does not have label '${name}'`);
       return;
     }
 
@@ -145,6 +162,7 @@ module.exports = {
   addLabelIfNotExists,
   execRoot,
   getChangedSwaggerFiles,
+  group,
   hasLabel,
   removeLabelIfExists,
 };
