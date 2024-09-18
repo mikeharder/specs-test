@@ -16,7 +16,7 @@ async function addLabelIfNotExists(github, context, core, name) {
       throw new Error("May only run in context of a pull request");
     }
 
-    if (await hasLabel(github, context, core, name)) {
+    if (await hasLabel(github, context, name)) {
       console.log(`Already has label '${name}'`);
       return;
     }
@@ -80,6 +80,7 @@ async function getChangedSwaggerFiles(
  * @param {() => Promise<T>} fn
  */
 async function group(name, fn) {
+  // Uses console.group() instead of @actions/core.group() which doesn't support nesting
   console.group(name);
   try {
     return await fn();
@@ -93,11 +94,10 @@ async function group(name, fn) {
 /**
  * @param {import('github-script').AsyncFunctionArguments['github']} github
  * @param {import('github-script').AsyncFunctionArguments['context']} context
- * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @param {string} name
  * @returns {Promise<boolean>}
  */
-async function hasLabel(github, context, core, name) {
+async function hasLabel(github, context, name) {
   return await group(`hasLabel("${name}")`, async () => {
     if (!context.payload.pull_request) {
       throw new Error("May only run in context of a pull request");
@@ -130,7 +130,7 @@ async function removeLabelIfExists(github, context, core, name) {
       throw new Error("May only run in context of a pull request");
     }
 
-    if (!(await hasLabel(github, context, core, name))) {
+    if (!(await hasLabel(github, context, name))) {
       console.log(`Does not have label '${name}'`);
       return;
     }

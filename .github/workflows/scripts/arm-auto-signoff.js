@@ -16,7 +16,7 @@ module.exports = async ({ github, context, core }) => {
   // - Not a conversion to TypeSpec
 
   if (
-    (await util.hasLabel(github, context, core, "ARMReview")) &&
+    (await util.hasLabel(github, context, "ARMReview")) &&
     (await incrementalChangesToExistingResourceProvider(core))
   ) {
     await util.addLabelIfNotExists(github, context, core, "ARMAutoSignedOff");
@@ -26,11 +26,10 @@ module.exports = async ({ github, context, core }) => {
 };
 
 /**
- * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @param {string} file
  * @returns {Promise<boolean>} True if the spec folder exists in the target branch
  */
-async function specFolderExistsInTargetBranch(core, file) {
+async function specFolderExistsInTargetBranch(file) {
   // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso/preview/2021-10-01-preview/contoso.json
   return await util.group(`specFolderExistsInTargetBranch("${file}")`, async () => {
     // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso
@@ -71,16 +70,16 @@ async function incrementalChangesToExistingResourceProvider(core) {
         "No changes to swagger files containing path '/resource-manager/'"
       );
       return false;
-    } else if (
-      changedRmFiles.some(
-        async (f) => !(await specFolderExistsInTargetBranch(core, f))
-      )
-    ) {
-      console.log("Appears to include changes in a new resource provider");
-      return false;
     } else {
-      console.log("Appears to include changes to existing RPs, and no new RPs");
+      for (let i=0; i < changedRmFiles.length; i++) {
+        const file = changedRmFiles[i];
+        if (!await(specFolderExistsInTargetBranch(file))) {
+          console.log("Appears to add a new RP: ${file}");
+          return false;
+        }
+      }
+      console.log("Appears to change an existing RPs, but adds no new RPs");
       return true;
-    }  
+    }
   });
 }
