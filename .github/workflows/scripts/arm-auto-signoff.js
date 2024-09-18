@@ -43,9 +43,9 @@ async function specFolderExistsInTargetBranch(file) {
   return Boolean(await util.execRoot(`git ls-tree HEAD^ ${specDir}`));
 }
 
-/*
+/**
  * @param {import('github-script').AsyncFunctionArguments['core']} core
- * @returns {boolean} True if PR contains at least one change to an existing RP, and no new RPs
+ * @returns {Promise<boolean>} True if PR contains at least one change to an existing RP, and no new RPs
  */
 async function incrementalChangesToExistingResourceProvider(core) {
   const changedSwaggerFiles = await util.getChangedSwaggerFiles(
