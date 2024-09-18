@@ -15,10 +15,6 @@ module.exports = async ({ github, context, core }) => {
   // - Authors self-attest the adherence to design best practices that are not automated.
   // - Not a conversion to TypeSpec
 
-  if (!context.payload.pull_request) {
-    throw new Error("May only run in context of a pull request");
-  }
-
   if (
     (await util.hasLabel(github, context, core, "ARMReview")) &&
     (await incrementalChangesToExistingResourceProvider(core))
@@ -36,48 +32,55 @@ module.exports = async ({ github, context, core }) => {
  */
 async function specFolderExistsInTargetBranch(core, file) {
   // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso/preview/2021-10-01-preview/contoso.json
+  return await core.group(`specFolderExistsInTargetBranch("${file}")`, async () => {
+    // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso
+    const specDir = path.dirname(path.dirname(path.dirname(file)));
+    console.log(`specDir: ${specDir}`);
 
-  // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso
-  const specDir = path.dirname(path.dirname(path.dirname(file)));
-  console.log(`specDir: ${specDir}`);
+    const lsTree = await util.execRoot(core, `git ls-tree HEAD^ ${specDir}`);
 
-  const lsTree = await util.execRoot(core, `git ls-tree HEAD^ ${specDir}`);
-
-  // Command "git ls-tree" returns a nonempty string if the folder exists in the target branch
-  return Boolean(lsTree);
+    // Command "git ls-tree" returns a nonempty string if the folder exists in the target branch
+    const result = Boolean(lsTree);
+    core.info(`returning: ${result}`);
+    return result;
+  });
 }
 
 /**
  * @param {import('github-script').AsyncFunctionArguments['core']} core
- * @returns {Promise<boolean>} True if PR contains at least one change to an existing RP, and no new RPs
+ * @returns {Promise<boolean>} True if PR contains changes to existing RPs, and no new RPs
  */
 async function incrementalChangesToExistingResourceProvider(core) {
-  const changedSwaggerFiles = await util.getChangedSwaggerFiles(
-    "HEAD^",
-    "HEAD",
-    ""
-  );
-  const changedRmFiles = changedSwaggerFiles.filter((f) =>
-    f.includes("/resource-manager/")
-  );
-
-  console.log(
-    `Changed files containing path '/resource-manager/': ${changedRmFiles}`
-  );
-
-  if (changedRmFiles.length == 0) {
-    console.log(
-      "No changes to swagger files containing path '/resource-manager/'"
+  return await core.group(`incrementalChangesToExistingResourceProvider()`, async () => {
+    const changedSwaggerFiles = await util.getChangedSwaggerFiles(
+      core,
+      "HEAD^",
+      "HEAD",
+      ""
     );
-    return false;
-  } else if (
-    changedRmFiles.some(
-      async (f) => !(await specFolderExistsInTargetBranch(core, f))
-    )
-  ) {
-    console.log("Appears to include changes in a new resource provider");
-    return false;
-  } else {
-    return true;
-  }
+    const changedRmFiles = changedSwaggerFiles.filter((f) =>
+      f.includes("/resource-manager/")
+    );
+  
+    core.info(
+      `Changed files containing path '/resource-manager/': ${changedRmFiles}`
+    );
+  
+    if (changedRmFiles.length == 0) {
+      core.info(
+        "No changes to swagger files containing path '/resource-manager/'"
+      );
+      return false;
+    } else if (
+      changedRmFiles.some(
+        async (f) => !(await specFolderExistsInTargetBranch(core, f))
+      )
+    ) {
+      core.info("Appears to include changes in a new resource provider");
+      return false;
+    } else {
+      core.info("Appears to include changes to existing RPs, and no new RPs");
+      return true;
+    }  
+  });
 }
