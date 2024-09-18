@@ -20,8 +20,8 @@ module.exports = async ({ github, context, core }) => {
   }
 
   if (
-    (await util.hasLabel(github, context, "ARMReview")) &&
-    (await incrementalChangesToExistingResourceProvider())
+    (await util.hasLabel(github, context, core, "ARMReview")) &&
+    (await incrementalChangesToExistingResourceProvider(core))
   ) {
     await util.addLabelIfNotExists(github, context, core, "ARMAutoSignedOff");
   } else {
@@ -30,28 +30,28 @@ module.exports = async ({ github, context, core }) => {
 };
 
 /**
+ * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @param {string} file
  * @returns {Promise<boolean>} True if the spec folder exists in the target branch
  */
-async function specFolderExistsInTargetBranch(file) {
+async function specFolderExistsInTargetBranch(core, file) {
   // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso/preview/2021-10-01-preview/contoso.json
 
   // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso
   const specDir = path.dirname(path.dirname(path.dirname(file)));
   console.log(`specDir: ${specDir}`);
 
-  const lsTree = await util.execRoot(`git ls-tree HEAD^ ${specDir}`);
+  const lsTree = await util.execRoot(core, `git ls-tree HEAD^ ${specDir}`);
 
   // Command "git ls-tree" returns a nonempty string if the folder exists in the target branch
-  const retval = Boolean(lsTree);
-  console.log(`retval: ${retval}`);
-  return retval;
+  return Boolean(lsTree);
 }
 
 /**
+ * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @returns {Promise<boolean>} True if PR contains at least one change to an existing RP, and no new RPs
  */
-async function incrementalChangesToExistingResourceProvider() {
+async function incrementalChangesToExistingResourceProvider(core) {
   const changedSwaggerFiles = await util.getChangedSwaggerFiles(
     "HEAD^",
     "HEAD",
@@ -70,7 +70,11 @@ async function incrementalChangesToExistingResourceProvider() {
       "No changes to swagger files containing path '/resource-manager/'"
     );
     return false;
-  } else if (changedRmFiles.some(async (f) => !(await specFolderExistsInTargetBranch(f)))) {
+  } else if (
+    changedRmFiles.some(
+      async (f) => !(await specFolderExistsInTargetBranch(core, f))
+    )
+  ) {
     console.log("Appears to include changes in a new resource provider");
     return false;
   } else {
