@@ -43,7 +43,9 @@ async function specFolderExistsInTargetBranch(file) {
   const lsTree = await util.execRoot(`git ls-tree HEAD^ ${specDir}`);
 
   // Command "git ls-tree" returns a nonempty string if the folder exists in the target branch
-  return Boolean(lsTree);
+  const retval = Boolean(lsTree);
+  console.log(`retval: ${retval}`);
+  return retval;
 }
 
 /**
