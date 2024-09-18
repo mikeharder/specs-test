@@ -96,6 +96,7 @@ async function removeLabelIfExists(github, context, core, name) {
 
   if (!(await hasLabel(github, context, core, name))) {
     core.info(`Does not have label '${name}'`);
+    return;
   }
 
   core.notice(`Removing label '${name}'`);
