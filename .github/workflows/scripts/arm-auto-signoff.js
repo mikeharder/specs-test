@@ -9,7 +9,7 @@ module.exports = async ({ github, context, core }) => {
   // - PR has label "ARMReview"
   // - PR represents incremental changes to an existing resource provider
   //   - The first PR for a new resource provider will still go thru the usual manual review process.
-  // - All required checks are passing
+  // - All required checks are passing (LintDiff, BreakingChanges)
   // - No swagger lintdiff suppressions are applied to the PR
   //   - If any suppressions are applied to these PRs, they will go thru a manual approval process because applying suppressions indicates that some of the mandatory guidelines are attempted to be violated.
   // - Authors self-attest the adherence to design best practices that are not automated.
@@ -74,7 +74,7 @@ async function incrementalChangesToExistingResourceProvider(core) {
       for (let i=0; i < changedRmFiles.length; i++) {
         const file = changedRmFiles[i];
         if (!await(specFolderExistsInTargetBranch(file))) {
-          console.log("Appears to add a new RP: ${file}");
+          console.log(`Appears to add a new RP: ${file}`);
           return false;
         }
       }
