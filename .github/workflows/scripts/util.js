@@ -39,7 +39,7 @@ async function execRoot(command) {
   const result = await exec(command, {
     cwd: process.env.GITHUB_WORKSPACE,
   });
-  console.log(`stdout: ${result.stdout}`)
+  console.log(`stdout: '${result.stdout}'`)
   return result.stdout;
 }
 
