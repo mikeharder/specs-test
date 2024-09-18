@@ -1,4 +1,4 @@
-name: Add ARMAutoSignoff
+name: ARMAutoSignoff
 
 on:
   pull_request:
@@ -7,19 +7,21 @@ on:
 
 jobs:
   add-arm-auto-signoff:
-    name: Add Label ARMAutoSignoff
+    name: ARMAutoSignoff
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 1
-        sparse-checkout: .github
+        fetch-depth: 2
+        sparse-checkout: |
+          .github
+          eng
 
-    - name: Add Label
+    - name: Add or Remove Label
       uses: actions/github-script@v7
       with:
         script: |
-          const addLabel = require('./.github/workflows/scripts/add-label.js')
-          await addLabel({ github, context }, "ARMAutoSignoff");
+          const armAutoSignoff = require('./.github/workflows/scripts/arm-auto-signoff.js')
+          await armAutoSignoff({ github, context, core });
