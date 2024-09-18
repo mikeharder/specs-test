@@ -20,7 +20,7 @@ module.exports = async ({ github, context, core }) => {
   }
 
   if (
-    (await util.hasLabel(github, context, core, "ARMReview")) &&
+    (await util.hasLabel(github, context, "ARMReview")) &&
     (await incrementalChangesToExistingResourceProvider())
   ) {
     await util.addLabelIfNotExists(github, context, core, "ARMAutoSignedOff");
