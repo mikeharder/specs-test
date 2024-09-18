@@ -70,7 +70,7 @@ async function incrementalChangesToExistingResourceProvider() {
       "No changes to swagger files containing path '/resource-manager/'"
     );
     return false;
-  } else if (changedRmFiles.some((f) => !specFolderExistsInTargetBranch(f))) {
+  } else if (changedRmFiles.some(async (f) => !(await specFolderExistsInTargetBranch(f)))) {
     console.log("Appears to include changes in a new resource provider");
     return false;
   } else {
