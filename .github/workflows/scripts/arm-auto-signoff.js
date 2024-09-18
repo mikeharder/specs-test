@@ -21,7 +21,7 @@ module.exports = async ({ github, context, core }) => {
 
   if (
     (await util.hasLabel(github, context, core, "ARMReview")) &&
-    (await incrementalChangesToExistingResourceProvider(core))
+    (await incrementalChangesToExistingResourceProvider())
   ) {
     await util.addLabelIfNotExists(github, context, core, "ARMAutoSignedOff");
   } else {
@@ -38,16 +38,18 @@ async function specFolderExistsInTargetBranch(file) {
 
   // Example: specification/contosowidgetmanager/resource-manager/Microsoft.Contoso
   const specDir = path.dirname(path.dirname(path.dirname(file)));
+  console.log(`specDir: ${specDir}`);
+
+  const lsTree = await util.execRoot(`git ls-tree HEAD^ ${specDir}`);
 
   // Command "git ls-tree" returns a nonempty string if the folder exists in the target branch
-  return Boolean(await util.execRoot(`git ls-tree HEAD^ ${specDir}`));
+  return Boolean(lsTree);
 }
 
 /**
- * @param {import('github-script').AsyncFunctionArguments['core']} core
  * @returns {Promise<boolean>} True if PR contains at least one change to an existing RP, and no new RPs
  */
-async function incrementalChangesToExistingResourceProvider(core) {
+async function incrementalChangesToExistingResourceProvider() {
   const changedSwaggerFiles = await util.getChangedSwaggerFiles(
     "HEAD^",
     "HEAD",
@@ -57,17 +59,17 @@ async function incrementalChangesToExistingResourceProvider(core) {
     f.includes("/resource-manager/")
   );
 
-  core.info(
+  console.log(
     `Changed files containing path '/resource-manager/': ${changedRmFiles}`
   );
 
   if (changedRmFiles.length == 0) {
-    core.info(
+    console.log(
       "No changes to swagger files containing path '/resource-manager/'"
     );
     return false;
   } else if (changedRmFiles.some((f) => !specFolderExistsInTargetBranch(f))) {
-    core.info("Appears to include changes in a new resource provider");
+    console.log("Appears to include changes in a new resource provider");
     return false;
   } else {
     return true;

@@ -14,8 +14,8 @@ async function addLabelIfNotExists(github, context, core, name) {
     throw new Error("May only run in context of a pull request");
   }
 
-  if (await hasLabel(github, context, core, name)) {
-    core.info(`Already has label '${name}'`);
+  if (await hasLabel(github, context, name)) {
+    console.log(`Already has label '${name}'`);
     return;
   }
 
@@ -35,9 +35,11 @@ async function addLabelIfNotExists(github, context, core, name) {
  */
 async function execRoot(command) {
   // TODO: Handle errors
+  console.log(`exec("${command}")`);
   const result = await exec(command, {
     cwd: process.env.GITHUB_WORKSPACE,
   });
+  console.log(`stdout: ${result.stdout}`)
   return result.stdout;
 }
 
@@ -66,7 +68,7 @@ async function getChangedSwaggerFiles(
  * @param {string} name
  * @returns {Promise<boolean>}
  */
-async function hasLabel(github, context, core, name) {
+async function hasLabel(github, context, name) {
   if (!context.payload.pull_request) {
     throw new Error("May only run in context of a pull request");
   }
@@ -78,7 +80,7 @@ async function hasLabel(github, context, core, name) {
     issue_number: context.payload.pull_request.number,
   });
   const labelNames = labels.map((l) => l.name);
-  core.info(`Labels: ${labelNames}`);
+  console.log(`Labels: ${labelNames}`);
 
   return labelNames.some((n) => n == name);
 }
@@ -94,8 +96,8 @@ async function removeLabelIfExists(github, context, core, name) {
     throw new Error("May only run in context of a pull request");
   }
 
-  if (!(await hasLabel(github, context, core, name))) {
-    core.info(`Does not have label '${name}'`);
+  if (!(await hasLabel(github, context, name))) {
+    console.log(`Does not have label '${name}'`);
     return;
   }
 
