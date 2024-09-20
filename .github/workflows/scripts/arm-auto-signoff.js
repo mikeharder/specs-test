@@ -2,6 +2,7 @@
 
 const path = require("path");
 const util = require("./util.js");
+const { readFile } = require("fs/promises");
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 module.exports = async ({ github, context, core }) => {
@@ -19,13 +20,12 @@ module.exports = async ({ github, context, core }) => {
   //     - If any suppressions are applied to these PRs, they will go thru a manual approval process because
   //       applying suppressions indicates that some of the mandatory guidelines are attempted to be violated.
 
-  console.log(`context.payload: ${JSON.stringify(context.payload)}`);
-
   if (
     (await util.hasLabel(github, context, "ARMReview")) &&
     !(await util.hasLabel(github, context, "NotReadyForARMReview")) &&
     (await util.hasLabel(github, context, "ARMBestPractices")) &&
-    (await incrementalChangesToExistingResourceProvider(core))
+    (await incrementalChangesToExistingResourceProvider(core)) &&
+    !(await typespecConversion(core))
   ) {
     await util.addLabelIfNotExists(github, context, core, "ARMAutoSignedOff");
   } else {
@@ -95,4 +95,49 @@ async function incrementalChangesToExistingResourceProvider(core) {
       }
     }
   );
+}
+
+/**
+ * @param {import('github-script').AsyncFunctionArguments['core']} core
+ * @returns {Promise<boolean>} True if PR contains a conversion to TypeSpec
+ */
+async function typespecConversion(core) {
+  return await util.group(`typespecConversion()`, async () => {
+    const changedSwaggerFiles = await util.getChangedSwaggerFiles(
+      core,
+      "HEAD^",
+      "HEAD",
+      "d"
+    );
+    const changedRmFiles = changedSwaggerFiles.filter((f) =>
+      f.includes("/resource-manager/")
+    );
+
+    console.log(
+      `Changed files containing path '/resource-manager/': ${changedRmFiles}`
+    );
+
+    if (changedRmFiles.length == 0) {
+      console.log(
+        "No changes to swagger files containing path '/resource-manager/'"
+      );
+      return false;
+    }
+
+    let changedSwaggerTypeSpecGenerated = false;
+
+    for (const file of changedRmFiles) {
+      const swagger = await readFile(
+        path.join(process.env.GITHUB_WORKSPACE || "", file),
+        { encoding: "utf8" }
+      );
+      const swaggerObj = JSON.parse(swagger);
+      if (swaggerObj["info"]["x-typespec-generated"]) {
+        console.log(`File "${file}" contains "info.x-typespec-generated"`);
+        changedSwaggerTypeSpecGenerated = true;
+      }
+    }
+
+    return changedSwaggerTypeSpecGenerated;
+  });
 }
